@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import { defaultCategory } from "@/server/infrastructure/ai/llm-providers";
 import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -40,7 +41,7 @@ export function CreateNotebookButton() {
         },
         body: JSON.stringify({
           notebook_id: notebook.id,
-          llm_name: 'openrouter::deepseek/deepseek-chat',
+          llm_name: defaultCategory,
           messages: '[]'
         }),
       });

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
 import { useNotebookChat } from "@/app/providers/chat-provider"
 import { cn } from "@/lib/utils"
+import { defaultCategory } from "@/server/infrastructure/ai/llm-providers"
 
 interface Chat {
   id: string
@@ -51,7 +52,7 @@ export function ChatHistoriesPanel() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          llm_name: 'openrouter::deepseek/deepseek-chat',
+          llm_name: defaultCategory,
           messages: JSON.stringify([]),
         }),
       })

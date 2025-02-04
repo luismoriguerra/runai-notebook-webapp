@@ -146,7 +146,7 @@ Cookie: {{token}}
 Content-Type: application/json
 
 {
-    "llm_name": "openrouter::deepseek/deepseek-chat",
+    "llm_name": "fast",
     "prompt": "augment the content of the note",
     "note_content": "Algebra is good"
 }

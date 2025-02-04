@@ -2,7 +2,7 @@ import { getSession } from '@auth0/nextjs-auth0/edge';
 import { NextResponse } from 'next/server';
 import { deleteChat, getChat, updateChat } from '@/server/domain/chats';
 import { CoreMessage, streamText } from 'ai';
-import { getProvider } from '@/server/infrastructure/ai/llm-providers';
+import { getModelByCategory, modelByCategory } from '@/server/infrastructure/ai/llm-providers';
 
 export const runtime = 'edge';
 
@@ -81,7 +81,7 @@ export async function DELETE(
 
 interface IChatRequest {
   messages: CoreMessage[];
-  llm_name: string;
+  llm_name: string; // this is category model now
 }
 
 export async function POST(
@@ -107,13 +107,13 @@ export async function POST(
     const { messages, llm_name } = await request.json() as IChatRequest;
 
 
-    console.log('llm_name', llm_name);
+    // console.log('llm_name', llm_name);
 
-    const provider = getProvider(llm_name);
+    const provider = getModelByCategory(llm_name as keyof typeof modelByCategory);
 
     if (!provider) {
       return NextResponse.json(
-        { error: `Unsupported model provider: ${llm_name}` },
+        { error: `Unsupported model category: ${llm_name}` },
         { status: 400 }
       );
     }

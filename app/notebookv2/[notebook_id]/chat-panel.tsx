@@ -9,7 +9,7 @@ import { useParams } from "next/navigation"
 import { useChat } from 'ai/react'
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { models } from '@/server/infrastructure/ai/llm-providers'
+import { modelCategories } from '@/server/infrastructure/ai/llm-providers'
 import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { encode } from "gpt-tokenizer"
 
@@ -30,11 +30,11 @@ interface ChatMessageType {
   sourceCount?: number
 }
 
-const llmOptions = models.map((model) => ({ value: model, label: model }));
+const llmCategories = modelCategories.map((model) => ({ value: model, label: model }));
 
 export function ChatPanel() {
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedModel, setSelectedModel] = useState(llmOptions[0].value)
+  const [selectedModel, setSelectedModel] = useState(llmCategories[0].value)
   const [totalTokens, setTotalTokens] = useState(0)
   const { selectedChat } = useNotebookChat()
   const params = useParams()
@@ -47,11 +47,11 @@ export function ChatPanel() {
     api: selectedChat ? `/api/notebooks/${notebookId}/chats/${selectedChat.id}` : undefined,
     onError: (error) => {
       console.error('Error sending message:', error);
-      
+
       // Handle specific AI provider errors
       if (error instanceof Error) {
         const errorData = error.cause as AIProviderError;
-        
+
         if (errorData?.finishReason === 'error') {
           toast({
             variant: "destructive",
@@ -60,7 +60,7 @@ export function ChatPanel() {
           });
           return;
         }
-        
+
         if (errorData?.message?.includes('rate limit')) {
           toast({
             variant: "destructive",
@@ -79,18 +79,6 @@ export function ChatPanel() {
       });
     }
   });
-
-  // const scrollToBottom = () => {
-  //   if (messagesEndRef.current) {
-  //     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   if (messages.length > 0) {
-  //     scrollToBottom()
-  //   }
-  // }, [messages, isGenerating])
 
   useEffect(() => {
     async function loadChatHistory() {
@@ -179,7 +167,7 @@ export function ChatPanel() {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                {llmOptions.map((model) => (
+                {llmCategories.map((model) => (
                   <SelectItem key={model.value} value={model.value}>
                     {model.label}
                   </SelectItem>
@@ -222,7 +210,7 @@ export function ChatPanel() {
           )}
         </div>
         {/* show ChatTokens */}
-       
+
         <form onSubmit={handleFormSubmit} className="border-t border-border p-4">
           <div className="flex gap-2">
             <div className="flex-1">
