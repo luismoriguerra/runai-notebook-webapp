@@ -1,0 +1,112 @@
+1. Create Breadcrumb provider 
+file: components/providers/breadcrumb-provider.tsx
+```
+'use client';
+
+import { createContext, useContext, useState, ReactNode } from 'react';
+
+export type BreadcrumbItem = {
+  route: string;
+  label: string;
+};
+
+type BreadcrumbContextType = {
+  breadcrumbs: BreadcrumbItem[];
+  setBreadcrumbs: (items: BreadcrumbItem[]) => void;
+};
+
+const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undefined);
+
+export function BreadcrumbProvider({ children }: { children: ReactNode }) {
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+
+  return (
+    <BreadcrumbContext.Provider value={{ breadcrumbs, setBreadcrumbs }}>
+      {children}
+    </BreadcrumbContext.Provider>
+  );
+}
+
+export function useBreadcrumb() {
+  const context = useContext(BreadcrumbContext);
+  if (context === undefined) {
+    throw new Error('useBreadcrumb must be used within a BreadcrumbProvider');
+  }
+  return context;
+} 
+```
+
+2. Create DynamicBreadcrumb component
+file: components/dynamic-breadcrumb.tsx
+```
+'use client';
+import { useBreadcrumb } from "@/components/providers/breadcrumb-provider"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
+export function DynamicBreadcrumb() {
+  const { breadcrumbs } = useBreadcrumb();
+
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        {breadcrumbs.map((item, index) => (
+          <>
+            <BreadcrumbItem key={item.route} className="hidden md:block">
+              {index === breadcrumbs.length - 1 ? (
+                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink href={item.route}>
+                  {item.label}
+                </BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+            {index < breadcrumbs.length - 1 && (
+              <BreadcrumbSeparator className="hidden md:block" />
+            )}
+          </>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+} 
+```
+
+3. add DynamicBreadcrumb to the layout, keep previous code in layout but remove breadcrumb from it
+app/layout.tsx
+```
+<BreadcrumbProvider>
+  <DynamicBreadcrumb />
+  {children}
+</BreadcrumbProvider>
+```
+
+4. Create SetBreadcrumb component to use in pages and children pages later
+file: components/set-breadcrumb.tsx
+```
+'use client';
+
+import { useEffect } from 'react';
+import { BreadcrumbItem, useBreadcrumb } from './providers/breadcrumb-provider';
+
+export function SetBreadcrumb({ breadcrumbs }: { breadcrumbs: BreadcrumbItem[] }) {
+  const { setBreadcrumbs } = useBreadcrumb();
+  
+  useEffect(() => {
+    setBreadcrumbs(breadcrumbs);
+  }, [breadcrumbs, setBreadcrumbs]);
+
+  return null;
+}
+```
+
+5. Use SetBreadcrumb in app/page.tsx
+```
+<SetBreadcrumb breadcrumbs={[{ label: "Home", route: "/" }]} />
+```

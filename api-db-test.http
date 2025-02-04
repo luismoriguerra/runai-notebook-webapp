@@ -1,0 +1,152 @@
+
+@token = {{$processEnv USER_TOKEN}}
+
+###
+GET http://localhost:3000/api/settings
+Cookie: {{token}}
+
+
+###
+POST http://localhost:3000/api/settings
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "key": "test",
+    "value": "test"
+}
+
+###
+@keyId=0fd576ba-bb34-4b7c-aea0-8fb6956ed91b
+PUT http://localhost:3000/api/settings/{{keyId}}
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "key": "test2",
+    "value": "test2"
+}
+
+###
+DELETE http://localhost:3000/api/settings/{{keyId}}
+Cookie: {{token}} 
+
+### Chat API Tests ###
+
+### List all notebooks
+GET http://localhost:3000/api/notebooks
+Cookie: {{token}}
+
+### Create a new notebook
+POST http://localhost:3000/api/notebooks
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "title": "My First Notebook",
+    "description": "A test notebook for development",
+    "url": "https://example.com/notebook1"
+}
+
+### Get a specific notebook
+@notebookId=1YOtvFgBK-a40_FLcRBwg
+GET http://localhost:3000/api/notebooks/{{notebookId}}
+Cookie: {{token}}
+
+### Update a notebook
+PUT http://localhost:3000/api/notebooks/{{notebookId}}
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "title": "Updated Notebook Title",
+    "description": "Updated notebook description",
+    "url": "https://example.com/updated-notebook"
+}
+
+### Delete a notebook
+DELETE http://localhost:3000/api/notebooks/{{notebookId}}
+Cookie: {{token}} 
+
+###
+GET http://localhost:3000/api/notebooks/{{notebookId}}/chats
+Cookie: {{token}}
+
+###
+POST http://localhost:3000/api/notebooks/{{notebookId}}/chats
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "notebook_id": "test-notebook-id",
+    "llm_name": "gpt-4",
+    "messages": "[]"
+}
+
+###
+@chatId=nTqBI8-8uDtToKqj4nVJ2
+GET http://localhost:3000/api/notebooks/{{notebookId}}/chats/{{chatId}}
+Cookie: {{token}}
+
+###
+PUT http://localhost:3000/api/notebooks/{{notebookId}}/chats/{{chatId}}
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "llm_name": "gpt-4",
+    "messages": "[{\"role\":\"user\",\"content\":\"Hello\"}]"
+}
+
+###
+DELETE http://localhost:3000/api/notebooks/{{notebookId}}/chats/{{chatId}}
+Cookie: {{token}} 
+
+### Get all notes
+GET http://localhost:3000/api/notebooks/{{notebookId}}/notes
+Cookie: {{token}}
+
+### Create a new note
+POST http://localhost:3000/api/notebooks/{{notebookId}}/notes
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "notebookId": "notebook-123",
+    "chatId": "chat-123",
+    "title": "Test Note",
+    "url": "/notebooks/notebook-123/notes/test-note",
+    "content": "This is a test note content"
+}
+
+### Update a note
+@noteId=OOJm-kOzDQlvJvIDxPdzO
+
+GET http://localhost:3000/api/notebooks/{{notebookId}}/notes/{{noteId}}
+Cookie: {{token}}
+
+###
+PUT http://localhost:3000/api/notebooks/{{notebookId}}/notes/{{noteId}}
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "title": "Updated Test Note",
+    "url": "/notebooks/notebook-123/notes/updated-test-note",
+    "content": "This is an updated test note content"
+}
+
+### Delete a note
+DELETE http://localhost:3000/api/notebooks/{{notebookId}}/notes/{{noteId}}
+Cookie: {{token}} 
+
+###
+POST http://localhost:3000/api/ai-assistant
+Cookie: {{token}}
+Content-Type: application/json
+
+{
+    "llm_name": "openrouter::deepseek/deepseek-chat",
+    "prompt": "augment the content of the note",
+    "note_content": "Algebra is good"
+}

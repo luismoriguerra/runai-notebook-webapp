@@ -1,0 +1,14 @@
+
+1. Let's add all secrets to wrangler that are required for this project
+```
+npx wrangler pages secret put AUTH0_SECRET
+npx wrangler pages secret put AUTH0_BASE_URL
+npx wrangler pages secret put AUTH0_ISSUER_BASE_URL
+npx wrangler pages secret put AUTH0_CLIENT_ID
+npx wrangler pages secret put AUTH0_CLIENT_SECRET
+npx wrangler pages secret put OPENAI_API_KEY
+npx wrangler pages secret put ANTHROPIC_API_KEY
+npx wrangler pages secret put CLOUDFLARE_ACCOUNT_ID
+npx wrangler pages secret put OPENROUTER_API_KEY
+npx wrangler pages secret put PERPLEXITY_API_KEY
+```

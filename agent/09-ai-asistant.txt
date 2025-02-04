@@ -1,0 +1,33 @@
+Build an AI assistant that can help you with your notes.
+
+1. Create a new API in the route /api/ai-assistant
+2. The API should have a POST method that takes a request with the following fields:
+    - prompt: string
+    - note_content: string
+3. The API should return a response with the following fields:
+    - response: string
+
+This is a one-message conversation. use this example for the POST API implementation
+
+export async function POST(request: Request) {
+    try {
+        const session = await getSession();
+        const userId = session?.user.sub;
+
+        if (!userId) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            )
+        }
+     const { prompt, note_content} = await request.json() as { prompt: string, note_content: string };
+
+    const message: CoreMessage = { role: "user", content: String(prompt) };
+    const messages: CoreMessage[] = [message];
+    const result = await streamText({
+            model: model,
+            messages,
+        });
+
+        return result.toDataStreamResponse();
+}

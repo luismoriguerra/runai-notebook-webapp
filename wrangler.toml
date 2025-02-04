@@ -1,0 +1,10 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "runai-notebook"
+compatibility_date = "2024-10-22"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static" 
+
+[[d1_databases]]
+binding = "DB"
+database_name = "runai-notebook-db"
+database_id = "40b6ad07-c7df-4908-946b-6d129c114073"

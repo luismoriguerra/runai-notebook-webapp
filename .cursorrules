@@ -1,0 +1,28 @@
+The next items are must in the codebase:
+- Use shadcn for ui with cli npx shadcn@latest add 
+- Use tailwind for styling
+- use nextjs for app routing
+- use auth0 for authentication and edge runtime for api routes
+- use d1 for database
+- Keep components short and simple, create new components when needed
+
+2. Always provide loading state for all async operations
+3. Always provide error handling for all async operations
+ for errors use toast.error from shadcn/ui
+4. Toast exists in import { useToast } from "@/hooks/use-toast"
+
+(2) shadcn cli is `npx shadcn@latest` for example `npx shadcn@latest add input`
+(3) we are using cloudflore pages for deployment, so any Nexjs app page and router must use edge runtime: `export const runtime = 'edge';`
+(4) use wrangler for d1 database, d1 is a sqlite database, so use wrangler to create migrations and apply them locally with --local flag
+(5) for generating new ID use nanoid library: `import { nanoid } from 'nanoid';`
+1. when you need to create a service for a new table follow example in server/domain/settings.ts
+2. when you need to create endpoints for a new table follow examples in 
+- app/api/settings/route.ts
+- app/api/settings/[id]/route.ts
+1. when you need to create test file for new APIS follow examples in 
+-- api-db-test.http
+
+1. if you need to create CRUD for a new table follow this plan and follow previous examples
+- create a service for the new table 
+- create endpoints for the new table service 
+- create a http file to test new apis 

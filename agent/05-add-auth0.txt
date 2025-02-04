@@ -1,0 +1,150 @@
+https://github.com/auth0/nextjs-auth0?tab=readme-ov-file#app-router
+
+1. Install dependencies
+```
+npm install @auth0/nextjs-auth0
+```
+
+2. Create auth0 route
+file: app/api/auth/[auth0]/route.ts
+```
+import { handleAuth } from '@auth0/nextjs-auth0/edge';
+export const runtime = 'edge';
+export const GET = handleAuth();
+```
+
+3. Wrap your app/layout.js component with the UserProvider component:
+```
+import { UserProvider } from '@auth0/nextjs-auth0';
+
+export default function RootLayout({ children }) {
+  return <UserProvider>{children}</UserProvider>;
+}
+```
+
+4. Make app full private by adding middleware
+file: middleware.ts
+```
+import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge';
+
+export default withMiddlewareAuthRequired();
+
+export const config = {
+    matcher: [
+      {
+        source:
+          '/((?!api/health|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+        missing: [
+          { type: 'header', key: 'next-router-prefetch' },
+          { type: 'header', key: 'purpose', value: 'prefetch' },
+        ],
+      },
+    ],
+  }
+```
+
+5. Create a new component file for UserClient component
+file: components/auth/user-client.tsx
+```
+'use client';
+
+import { useUser } from '@auth0/nextjs-auth0/client';
+
+export default function UserClient() {
+    const { user } = useUser();
+    if (user) {
+        return <pre data-testid="client-component">{JSON.stringify(user, null, 2)}</pre>;
+    }
+    return <> anonymous</>;
+}
+```
+
+6.  Update app/page.tsx by removing content and adding login and logout links and user client component
+```
+<Button asChild>
+  <Link href="/api/auth/login">Login</Link>
+</Button>
+<hr />
+<div>
+  <a href="/api/auth/logout">Logout</a>
+</div>
+```
+
+7. Create Public api route
+file: app/api/health/route.ts
+```
+export const runtime = 'edge';
+export const GET = () => {
+    return new Response('ok', { status: 200 });
+}
+```
+
+8. Create a private api route
+file: app/api/private/route.ts
+```
+export const runtime = 'edge';
+export const GET = () => {
+    return new Response('ok', { status: 200 });
+}
+```
+
+9. Update nav-user.tsx user users's data from auth0
+file: components/nav-user.tsx
+-add the next changes in the file and don't remove existing code
+- remove NavUser components prompts and get user data from auth9
+```
+import { useUser } from "@auth0/nextjs-auth0/client"
+
+const { user, error, isLoading } = useUser();
+
+  const [name, setName] = useState<string | null | undefined>(user?.nickname);
+  const [email, setEmail] = useState<string | null | undefined>(user?.email);
+  const [avatar, setAvatar] = useState<string | null | undefined>(user?.picture);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.nickname);
+      setEmail(user.email);
+      setAvatar(user.picture);
+    }
+  }, [user]);
+```
+
+- for logout use Anchor tag
+```
+<DropdownMenuSeparator />
+<a href="/api/auth/logout">
+  <DropdownMenuItem>
+    <LogOut />
+    Log out
+  </DropdownMenuItem>
+</a>
+```
+
+10 . Create a auth0 service file 
+with the next methods:
+- getUser
+file: server/services/auth0.ts
+for getting user use 
+```
+import { getSession } from '@auth0/nextjs-auth0/edge';
+
+  const session = await getSession();
+  const userId = session?.user.sub;
+```
+
+11. Create a Enpoint /api/me that returns session JSON
+file: app/api/me/route.ts
+
+12. create new file api-test.http and add the next tests:
+```
+###
+Get http://localhost:3000/api/health
+
+###
+Get http://localhost:3000/api/private
+
+###
+Get http://localhost:3000/api/me
+
+```

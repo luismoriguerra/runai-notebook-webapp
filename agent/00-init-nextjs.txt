@@ -1,0 +1,9 @@
+(1) Let's start with 
+
+npx shadcn@latest init
+
+2. install sidebar 
+npx shadcn@latest add sidebar-07
+
+3. Install more shadcn components
+npx shadcn@latest add alert-dialog select card input textarea button dialog avatar select checkbox label 

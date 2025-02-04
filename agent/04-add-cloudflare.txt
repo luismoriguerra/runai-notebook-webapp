@@ -1,0 +1,40 @@
+
+1. Install dependencies 
+
+npm install --save-dev @cloudflare/next-on-pages
+
+
+2. Add to wrangler.toml
+
+```
+#:schema node_modules/wrangler/config-schema.json
+name = "runai-notebook"
+compatibility_date = "2024-10-22"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static" 
+```
+
+3. Update next.config.mjs
+```
+ import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {};
+
+ if (process.env.NODE_ENV === 'development') {
+   await setupDevPlatform();
+ }
+
+export default nextConfig;
+```
+
+4. Update package.json
+```
+"pages:build": "npx @cloudflare/next-on-pages",
+"preview": "npm run pages:build && wrangler pages dev",
+"deploy": "npm run pages:build && wrangler pages deploy"
+```
+
+5. run deploy
+
+npm run deploy

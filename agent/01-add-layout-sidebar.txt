@@ -1,0 +1,5 @@
+
+1. Accomodate Global Layout with sidebar from dashboar page 
+- move SidebarTrigger from app/dashboard/page to app/layout.tsx
+- move breadcrumb from app/dashboard/page to app/layout.tsx
+

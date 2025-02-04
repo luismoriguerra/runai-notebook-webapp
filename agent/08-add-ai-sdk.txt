@@ -1,0 +1,7 @@
+1. install dependecies 
+npm install ai @ai-sdk/openai zod
+npm install @ai-sdk/anthropic
+npm install @ai-sdk/mistral
+npm install @ai-sdk/groq
+npm install @ai-sdk/openai-compatible
+npm install ollama-ai-provider
