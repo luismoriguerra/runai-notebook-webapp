@@ -123,12 +123,15 @@ export async function POST(
       messages,
       maxTokens: 8000,
       providerOptions: {
-        'DeepInfra': {
-          include_reasoning: true,
+        openrouter: {
+          includeReasoning: true,
         },
-        'OpenRouter': {
-          include_reasoning: true,
-        }
+        // 'DeepInfra': {
+        //   include_reasoning: true,
+        // },
+        // 'OpenRouter': {
+        //   include_reasoning: true,
+        // }
       },
       async onFinish({ text, finishReason, usage, response }) {
 
