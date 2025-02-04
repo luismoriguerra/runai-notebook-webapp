@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { nanoid } from 'nanoid'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
+import { CollapsibleDiv } from '@/components/ui/collapsible-div'
 
 interface ChatMessageProps {
   message: {
@@ -73,8 +74,12 @@ export function ChatMessage({ message, notebookId }: ChatMessageProps) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="rounded-lg px-4 py-2 max-w-[80%] bg-primary text-primary-foreground">
-          {message.content}
+        <div className="rounded-lg px-4 py-2 max-w-[80%] ">
+          <CollapsibleDiv variant="white">
+            <div className="pr-5">
+              {message.content}
+            </div>
+          </CollapsibleDiv>
         </div>
       </div>
     )
@@ -82,36 +87,38 @@ export function ChatMessage({ message, notebookId }: ChatMessageProps) {
 
   return (
     <div className="flex flex-col rounded-lg bg-muted max-w-[80%]">
-      {message.title && (
-        <div className="flex items-center justify-between border-b border-border p-2">
-          <h3 className="font-medium">{message.title}</h3>
-          {message.sourceCount && (
-            <span className="text-xs text-muted-foreground">
-              {message.sourceCount} sources
-            </span>
-          )}
+      <CollapsibleDiv>
+        {message.title && (
+          <div className="flex items-center justify-between border-b border-border p-2">
+            <h3 className="font-medium">{message.title}</h3>
+            {message.sourceCount && (
+              <span className="text-xs text-muted-foreground">
+                {message.sourceCount} sources
+              </span>
+            )}
+          </div>
+        )}
+        {message.reasoning && <pre>{message.reasoning}</pre>}
+        <div className="p-4">
+          {/* <p className="whitespace-pre-wrap">{message.content}</p> */}
+          <MarkdownRenderer content={message.content} />
         </div>
-      )}
-      {message.reasoning && <pre>{message.reasoning}</pre>}
-      <div className="p-4">
-        {/* <p className="whitespace-pre-wrap">{message.content}</p> */}
-        <MarkdownRenderer content={message.content} />
-      </div>
-      <div className="flex items-center gap-2 border-t border-border p-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleSaveNote}
-          disabled={isSaving}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save as Note'}
-        </Button>
-        <Button variant="ghost" size="sm" onClick={handleCopy}>
-          <Copy className="h-4 w-4 mr-2" />
-          Copy
-        </Button>
-      </div>
+        <div className="flex items-center gap-2 border-t border-border p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveNote}
+            disabled={isSaving}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save as Note'}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy
+          </Button>
+        </div>
+      </CollapsibleDiv>
     </div>
   )
 }
