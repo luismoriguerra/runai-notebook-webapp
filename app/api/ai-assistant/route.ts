@@ -1,7 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0/edge';
 import { NextResponse } from 'next/server';
 import { CoreMessage, generateText } from 'ai';
-import { getProvider } from '@/server/infrastructure/ai/llm-providers';
+import { getModelByCategory, modelByCategory } from '@/server/infrastructure/ai/llm-providers';
 
 export const runtime = 'edge';
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         const { prompt, note_content, llm_name } = await request.json() as { prompt: string, note_content: string, llm_name: string };
 
 
-        const provider = getProvider(llm_name);
+        const provider = getModelByCategory(llm_name as keyof typeof modelByCategory);
 
         if (!provider) {
             return NextResponse.json(

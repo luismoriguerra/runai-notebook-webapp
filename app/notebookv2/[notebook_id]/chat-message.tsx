@@ -14,6 +14,7 @@ interface ChatMessageProps {
     content: string
     title?: string
     sourceCount?: number
+    reasoning?: string
   }
   notebookId: string
 }
@@ -91,6 +92,7 @@ export function ChatMessage({ message, notebookId }: ChatMessageProps) {
           )}
         </div>
       )}
+      {message.reasoning && <pre>{message.reasoning}</pre>}
       <div className="p-4">
         {/* <p className="whitespace-pre-wrap">{message.content}</p> */}
         <MarkdownRenderer content={message.content} />

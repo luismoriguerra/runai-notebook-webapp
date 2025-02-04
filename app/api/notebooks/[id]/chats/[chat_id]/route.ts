@@ -1,7 +1,7 @@
 import { getSession } from '@auth0/nextjs-auth0/edge';
 import { NextResponse } from 'next/server';
 import { deleteChat, getChat, updateChat } from '@/server/domain/chats';
-import { CoreMessage, streamText } from 'ai';
+import { CoreMessage, LanguageModelV1, streamText } from 'ai';
 import { getModelByCategory, modelByCategory } from '@/server/infrastructure/ai/llm-providers';
 
 export const runtime = 'edge';
@@ -119,9 +119,17 @@ export async function POST(
     }
 
     const stream = await streamText({
-      model: provider,
+      model: provider as LanguageModelV1,
       messages,
       maxTokens: 8000,
+      providerOptions: {
+        'DeepInfra': {
+          include_reasoning: true,
+        },
+        'OpenRouter': {
+          include_reasoning: true,
+        }
+      },
       async onFinish({ text, finishReason, usage, response }) {
 
         console.log('on finish', JSON.stringify({ text, finishReason, usage, response }, null, 2));
@@ -140,7 +148,8 @@ export async function POST(
     });
 
     return stream.toDataStreamResponse({
-      sendUsage: true
+      sendUsage: true,
+      sendReasoning: true,
     });
   } catch (error) {
     console.error('Error in chat API:', error);

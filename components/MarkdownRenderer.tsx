@@ -100,12 +100,23 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       return <InlineMath math={mathExpression} />;
     }
 
+    const miniCodeInline = 48;
     if (inline) {
+      const content = String(children);
+      // Skip code tag for small strings
+      if (content.length < miniCodeInline) {
+        return <span className="text-foreground font-mono text-sm inline bg-slate-700 rounded p-1">{content}</span>;
+      }
       return <code className="bg-muted rounded px-1 py-0.5 text-foreground font-mono text-sm">{children}</code>;
     }
 
     const lang = match ? match[1] : 'text';
     const code = String(children);
+
+    // Skip code block for small strings without language specification
+    if (!match && code.length < miniCodeInline) {
+      return <span className="rounded p-1 text-foreground font-mono text-sm my-2 inline bg-slate-300">{code}</span>;
+    }
 
     try {
       const html = highlighter.codeToHtml(code, {

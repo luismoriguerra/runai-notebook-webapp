@@ -170,24 +170,6 @@ export function NotesPanel() {
                   <Plus className="h-4 w-4" />
                   Add note
                 </Button>
-                {/* <div className="grid grid-cols-2 gap-2">
-                  <Button variant="ghost" className="justify-start gap-2">
-                    <Book className="h-4 w-4" />
-                    Study guide
-                  </Button>
-                  <Button variant="ghost" className="justify-start gap-2">
-                    <FileText className="h-4 w-4" />
-                    Briefing doc
-                  </Button>
-                  <Button variant="ghost" className="justify-start gap-2">
-                    <HelpCircle className="h-4 w-4" />
-                    FAQ
-                  </Button>
-                  <Button variant="ghost" className="justify-start gap-2">
-                    <Timeline className="h-4 w-4" />
-                    Timeline
-                  </Button>
-                </div> */}
               </div>
               <div className="mt-4 space-y-2">
                 {loading ? (

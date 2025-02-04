@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { models } from "@/server/infrastructure/ai/llm-providers"
+import { defaultCategory, modelCategories } from "@/server/infrastructure/ai/llm-providers"
 import { useTimer } from "@/hooks/use-timer"
 
 interface Note {
@@ -118,7 +118,7 @@ export function EditNote({
   const [aiLoading, setAiLoading] = useState<AIAction>(null)
   const [contentHistory, setContentHistory] = useState<ContentHistory[]>([])
   const [canUndo, setCanUndo] = useState(false)
-  const [selectedModel, setSelectedModel] = useState(models[0])
+  const [selectedModel, setSelectedModel] = useState(defaultCategory)
   const [customPrompt, setCustomPrompt] = useState("")
   const elapsedTime = useTimer(aiLoading !== null)
 
@@ -367,13 +367,13 @@ export function EditNote({
           <CollapsibleContent className="space-y-4 pt-4">
             <Select
               onValueChange={(value) => setSelectedModel(value)}
-              defaultValue={selectedModel || models[0]}
+              defaultValue={selectedModel || defaultCategory}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select LLM model" />
               </SelectTrigger>
               <SelectContent>
-                {models.map((model) => (
+                {modelCategories.map((model) => (
                   <SelectItem key={model} value={model}>
                     {model}
                   </SelectItem>
