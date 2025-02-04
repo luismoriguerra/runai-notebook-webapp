@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RunAI Notebook Webapp
 
-## Getting Started
+A modern, feature-rich notebook application built with Next.js, featuring AI-powered assistance and real-time collaboration capabilities.
 
-First, run the development server:
+## 🚀 Features
 
+- 📝 Interactive Notebook Interface
+- 🤖 AI Assistant Integration (Multiple AI Providers Support)
+- 🔐 Auth0 Authentication
+- 💾 Cloudflare D1 Database
+- 🎨 Modern UI with shadcn/ui Components
+- 📱 Responsive Design
+- 🌐 Edge Runtime Support
+- 🔄 Real-time Updates
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14
+- **Authentication:** Auth0
+- **Database:** Cloudflare D1 (SQLite)
+- **UI Components:** shadcn/ui
+- **Styling:** Tailwind CSS
+- **AI Providers:** OpenAI, Anthropic, Groq, Mistral, XAI
+- **Deployment:** Cloudflare Pages
+
+## 📋 Prerequisites
+
+- Node.js 18+ 
+- Wrangler CLI (for D1 database)
+- Auth0 Account
+- AI Provider API Keys
+
+## 🚀 Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd runai-notebook-webapp
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env.local` file with the following variables:
+   ```
+   # Auth0
+   AUTH0_SECRET='your-auth0-secret'
+   AUTH0_BASE_URL='your-auth0-base-url'
+   AUTH0_ISSUER_BASE_URL='your-auth0-issuer-url'
+   AUTH0_CLIENT_ID='your-auth0-client-id'
+   AUTH0_CLIENT_SECRET='your-auth0-client-secret'
+
+   # AI Providers
+   OPENAI_API_KEY='your-openai-api-key'
+   # Add other AI provider keys as needed
+   ```
+
+4. **Initialize the database**
+   ```bash
+   wrangler d1 migrations apply --local
+   ```
+
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 🔧 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build the application
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run pages:build` - Build for Cloudflare Pages
+- `npm run preview` - Preview Cloudflare Pages build locally
+- `npm run deploy` - Deploy to Cloudflare Pages
+
+## 📦 Database Migrations
+
+To create a new migration:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+wrangler d1 migrations create <migration-name>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+To apply migrations locally:
+```bash
+wrangler d1 migrations apply --local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application is configured for deployment on Cloudflare Pages. To deploy:
 
-## Learn More
+1. Ensure all environment variables are set in Cloudflare Pages dashboard
+2. Run `npm run deploy`
 
-To learn more about Next.js, take a look at the following resources:
+## 🧪 Testing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+API endpoints can be tested using the provided `api-db-test.http` file.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📝 Project Structure
 
-## Deploy on Vercel
+- `/app` - Next.js application routes and pages
+- `/components` - Reusable UI components
+- `/server` - Backend services and domain logic
+- `/hooks` - Custom React hooks
+- `/migrations` - D1 database migrations
+- `/lib` - Utility functions and shared code
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
+
+## 📄 License
+
+This project is private and proprietary.
