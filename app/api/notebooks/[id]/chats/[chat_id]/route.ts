@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { deleteChat, getChat, updateChat } from '@/server/domain/chats';
 import { CoreMessage, LanguageModelV1, streamText } from 'ai';
 import { getModelByCategory, modelByCategory } from '@/server/infrastructure/ai/llm-providers';
-
+import { to } from 'await-to-js';
 export const runtime = 'edge';
 
 export async function GET(
@@ -118,24 +118,34 @@ export async function POST(
       );
     }
 
+    console.log(JSON.stringify({
+      action: 'streamText',
+      messages,
+      llm_name,
+      provider
+    }, null, 2));
+
     const stream = await streamText({
       model: provider as LanguageModelV1,
       messages,
       maxTokens: 8000,
-      providerOptions: {
-        openrouter: {
-          includeReasoning: true,
-        },
-        // 'DeepInfra': {
-        //   include_reasoning: true,
-        // },
-        // 'OpenRouter': {
-        //   include_reasoning: true,
-        // }
-      },
+      // providerOptions: {
+      //   openrouter: {
+      //     includeReasoning: true,
+      //   },
+      //   // 'DeepInfra': {
+      //   //   include_reasoning: true,
+      //   // },
+      //   // 'OpenRouter': {
+      //   //   include_reasoning: true,
+      //   // }
+      // },
       async onFinish({ text, finishReason, usage, response }) {
 
-        console.log('on finish', JSON.stringify({ text, finishReason, usage, response }, null, 2));
+        console.log(JSON.stringify({
+          action: 'onFinish',
+          text, finishReason, usage, response
+        }, null, 2));
 
         if (!text) {
           throw new Error('No text returned from the model');
@@ -146,13 +156,16 @@ export async function POST(
           content: text
         }];
 
-        await updateChat(chatId, userId, llm_name, JSON.stringify(updatedMessages));
+        const [err] = await to(updateChat(chatId, userId, llm_name, JSON.stringify(updatedMessages)));
+        if (err) {
+          console.error('Error in updateChat:', err);
+        }
       }
     });
 
     return stream.toDataStreamResponse({
       sendUsage: true,
-      sendReasoning: true,
+      // sendReasoning: true,
     });
   } catch (error) {
     console.error('Error in chat API:', error);

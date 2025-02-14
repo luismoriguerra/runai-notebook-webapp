@@ -49,6 +49,7 @@
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@uiw/react-md-editor": "^4.0.5",
     "ai": "^4.1.17",
+    "await-to-js": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "gpt-tokenizer": "^2.8.1",

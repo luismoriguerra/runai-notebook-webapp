@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Send, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { ChatMessage } from "./chat-message"
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { modelCategories } from '@/server/infrastructure/ai/llm-providers'
 import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { encode } from "gpt-tokenizer"
+import { memo } from 'react'
+import { Message } from 'ai'
 
 interface AIProviderError {
   finishReason?: string;
@@ -32,6 +34,100 @@ interface ChatMessageType {
 
 const llmCategories = modelCategories.map((model) => ({ value: model, label: model }));
 
+// Memoized Header Component
+const ChatHeader = memo(({ totalTokens, selectedModel, onModelChange }: {
+  totalTokens: number;
+  selectedModel: string;
+  onModelChange: (value: string) => void;
+}) => (
+  <div className="flex items-center justify-between border-b border-border p-4">
+    <h2 className="text-lg font-medium">Chat</h2>
+    <div className="flex items-center gap-2">
+      <div className="text-sm text-muted-foreground mr-2">
+        Total Tokens: {totalTokens}
+      </div>
+      <Select value={selectedModel} onValueChange={onModelChange}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select a model" />
+        </SelectTrigger>
+        <SelectContent>
+          {llmCategories.map((model) => (
+            <SelectItem key={model.value} value={model.value}>
+              {model.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+));
+ChatHeader.displayName = 'ChatHeader';
+
+// Memoized Messages List Component
+const MessagesList = memo(({ messages, isGenerating, messagesEndRef, notebookId }: {
+  messages: Message[];
+  isGenerating: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  notebookId: string;
+}) => (
+  <div className="space-y-4">
+    {messages.map((message) => (
+      <ChatMessage
+        key={message.id}
+        message={message as ChatMessageType}
+        notebookId={notebookId}
+      />
+    ))}
+    {isGenerating && (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>AI is thinking...</span>
+      </div>
+    )}
+    <div ref={messagesEndRef} />
+  </div>
+));
+MessagesList.displayName = 'MessagesList';
+
+// Memoized Input Form Component
+const ChatInputForm = memo(({ 
+  input, 
+  onInputChange, 
+  onKeyDown, 
+  onSubmit, 
+  isDisabled 
+}: {
+  input: string;
+  onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  isDisabled: boolean;
+}) => (
+  <form onSubmit={onSubmit} className="border-t border-border p-4">
+    <div className="flex gap-2">
+      <div className="flex-1">
+        <EnhancedTextarea
+          placeholder="Type a message..."
+          value={input}
+          onChange={onInputChange}
+          onKeyDown={onKeyDown}
+          disabled={isDisabled}
+          className="min-h-[60px] max-h-[200px]"
+          rows={3}
+        />
+      </div>
+      <Button
+        type="submit"
+        disabled={!input.trim() || isDisabled}
+        className="shrink-0"
+      >
+        <Send className="h-4 w-4" />
+      </Button>
+    </div>
+  </form>
+));
+ChatInputForm.displayName = 'ChatInputForm';
+
 export function ChatPanel() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedModel, setSelectedModel] = useState(llmCategories[0].value)
@@ -45,10 +141,9 @@ export function ChatPanel() {
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading: isGenerating } = useChat({
     api: selectedChat ? `/api/notebooks/${notebookId}/chats/${selectedChat.id}` : undefined,
-    onError: (error) => {
+    onError: useCallback((error: Error) => {
       console.error('Error sending message:', error);
 
-      // Handle specific AI provider errors
       if (error instanceof Error) {
         const errorData = error.cause as AIProviderError;
 
@@ -71,13 +166,12 @@ export function ChatPanel() {
         }
       }
 
-      // Default error message for other cases
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to send message. Please try again.",
       });
-    }
+    }, [toast])
   });
 
   useEffect(() => {
@@ -117,19 +211,13 @@ export function ChatPanel() {
   }, [selectedChat, notebookId, setMessages, toast]);
 
   useEffect(() => {
-    // Calculate total tokens whenever messages change
-    const calculateTotalTokens = () => {
-      const totalTokens = messages.reduce((acc, message) => {
-        return acc + encode(message.content).length;
-      }, 0);
-      setTotalTokens(totalTokens);
-    };
-
-    calculateTotalTokens();
+    const totalTokens = messages.reduce((acc, message) => {
+      return acc + encode(message.content).length;
+    }, 0);
+    setTotalTokens(totalTokens);
   }, [messages]);
 
-  // Reset shouldAutoScroll when user sends a new message
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedChat) return;
 
@@ -140,42 +228,24 @@ export function ChatPanel() {
         llm_name: selectedModel
       }
     });
-  }
+  }, [selectedChat, handleSubmit, notebookId, selectedModel]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
       handleFormSubmit(formEvent);
     }
-  }
+  }, [handleFormSubmit]);
 
   return (
     <div className="border-l border-border flex-1">
       <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between border-b border-border p-4">
-          <h2 className="text-lg font-medium">Chat</h2>
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-muted-foreground mr-2">
-              Total Tokens: {totalTokens}
-            </div>
-            <Select
-              value={selectedModel}
-              onValueChange={setSelectedModel}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                {llmCategories.map((model) => (
-                  <SelectItem key={model.value} value={model.value}>
-                    {model.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <ChatHeader 
+          totalTokens={totalTokens}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+        />
 
         <div
           ref={chatContainerRef}
@@ -191,48 +261,22 @@ export function ChatPanel() {
               No messages yet. Start a conversation!
             </div>
           ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message as ChatMessageType}
-                  notebookId={notebookId}
-                />
-              ))}
-              {isGenerating && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>AI is thinking...</span>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+            <MessagesList
+              messages={messages}
+              isGenerating={isGenerating}
+              messagesEndRef={messagesEndRef}
+              notebookId={notebookId}
+            />
           )}
         </div>
-        {/* show ChatTokens */}
 
-        <form onSubmit={handleFormSubmit} className="border-t border-border p-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <EnhancedTextarea
-                placeholder="Type a message..."
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                disabled={!selectedChat || isGenerating}
-                className="min-h-[60px] max-h-[200px]"
-                rows={3}
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={!input.trim() || !selectedChat || isGenerating}
-              className="shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
+        <ChatInputForm
+          input={input}
+          onInputChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onSubmit={handleFormSubmit}
+          isDisabled={!selectedChat || isGenerating}
+        />
       </div>
     </div>
   )

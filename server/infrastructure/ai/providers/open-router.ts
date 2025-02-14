@@ -28,8 +28,12 @@ const openrouter = createOpenRouter({
   extraBody: {
     provider: {
       ignore: [
+        "Fireworks",
         "Together",
-        "Novita"
+        "Novita",
+        "Featherless",
+        "Kluster",
+        "Avian"
       ]
       // allow_fallbacks: false
     },
