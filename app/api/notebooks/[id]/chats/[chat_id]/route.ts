@@ -4,6 +4,8 @@ import { deleteChat, getChat, updateChat } from '@/server/domain/chats';
 import { CoreMessage, LanguageModelV1, streamText } from 'ai';
 import { getModelByCategory, modelByCategory } from '@/server/infrastructure/ai/llm-providers';
 import { to } from 'await-to-js';
+import { getNotebook } from '@/server/domain/notebooks';
+
 export const runtime = 'edge';
 
 export async function GET(
@@ -103,6 +105,11 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const notebook = await getNotebook(params.id, userId);
+  if (!notebook) {
+    return NextResponse.json({ error: 'Notebook not found' }, { status: 404 });
+  }
+
   try {
     const { messages, llm_name } = await request.json() as IChatRequest;
 
@@ -127,19 +134,10 @@ export async function POST(
 
     const stream = await streamText({
       model: provider as LanguageModelV1,
+      system: notebook.instructions,
       messages,
       maxTokens: 8000,
-      // providerOptions: {
-      //   openrouter: {
-      //     includeReasoning: true,
-      //   },
-      //   // 'DeepInfra': {
-      //   //   include_reasoning: true,
-      //   // },
-      //   // 'OpenRouter': {
-      //   //   include_reasoning: true,
-      //   // }
-      // },
+      maxSteps: 4,
       async onFinish({ text, finishReason, usage, response }) {
 
         console.log(JSON.stringify({
@@ -165,7 +163,7 @@ export async function POST(
 
     return stream.toDataStreamResponse({
       sendUsage: true,
-      // sendReasoning: true,
+      sendReasoning: true,
     });
   } catch (error) {
     console.error('Error in chat API:', error);

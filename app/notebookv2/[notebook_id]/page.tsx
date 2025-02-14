@@ -1,14 +1,13 @@
-import { Share, Settings } from 'lucide-react'
-import { Button } from "@/components/ui/button"
 import { NotebookTitle } from "@/components/notebook-title"
 import { getNotebook } from "@/server/domain/notebooks"
 import { getSession } from "@auth0/nextjs-auth0/edge"
 import { SetBreadcrumb } from '@/components/set-breadcrumb'
 import { NotebookClientWrapper } from './notebook-client-wrapper'
 import { NotebookPanels } from '@/components/notebook-panels'
+import { NotebookInstructions } from "@/components/notebook-instructions"
 
 export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 async function getServerNotebook(id: string) {
   const session = await getSession();
@@ -43,15 +42,19 @@ export default async function NotebookLayout({ params }: { params: { notebook_id
                 url={notebook.url}
               />
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon">
                 <Share className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
               </Button>
-            </div>
+            </div> */}
           </div>
+          <NotebookInstructions 
+            notebookId={notebook.id}
+            initialInstructions={notebook.instructions}
+          />
         </header>
         <div className="grid h-[calc(100vh-8rem)] grid-cols-1">
           <NotebookPanels />

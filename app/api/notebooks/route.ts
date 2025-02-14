@@ -27,12 +27,12 @@ export async function POST(request: Request) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        const { title, description, url } = await request.json();
-        if (!title || !description || !url) {
+        const { title, description, url, instructions } = await request.json();
+        if (!title || !description) {
             return new NextResponse('Missing required fields', { status: 400 });
         }
 
-        const notebook = await createNotebook(session.user.sub, title, description, url);
+        const notebook = await createNotebook(session.user.sub, title, description, url, instructions);
         revalidatePath('/');
         return NextResponse.json(notebook);
     } catch (error) {

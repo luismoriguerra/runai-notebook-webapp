@@ -95,13 +95,17 @@ const ChatInputForm = memo(({
   onInputChange, 
   onKeyDown, 
   onSubmit, 
-  isDisabled 
+  isDisabled,
+  isGenerating,
+  onStop
 }: {
   input: string;
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isDisabled: boolean;
+  isGenerating: boolean;
+  onStop: () => void;
 }) => (
   <form onSubmit={onSubmit} className="border-t border-border p-4">
     <div className="flex gap-2">
@@ -116,13 +120,24 @@ const ChatInputForm = memo(({
           rows={3}
         />
       </div>
-      <Button
-        type="submit"
-        disabled={!input.trim() || isDisabled}
-        className="shrink-0"
-      >
-        <Send className="h-4 w-4" />
-      </Button>
+      {isGenerating ? (
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={onStop}
+          className="shrink-0"
+        >
+          Stop
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          disabled={!input.trim() || isDisabled}
+          className="shrink-0"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   </form>
 ));
@@ -139,8 +154,9 @@ export function ChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
 
-  const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading: isGenerating } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading: isGenerating, stop } = useChat({
     api: selectedChat ? `/api/notebooks/${notebookId}/chats/${selectedChat.id}` : undefined,
+    maxSteps: 4,
     onError: useCallback((error: Error) => {
       console.error('Error sending message:', error);
 
@@ -276,6 +292,8 @@ export function ChatPanel() {
           onKeyDown={handleKeyDown}
           onSubmit={handleFormSubmit}
           isDisabled={!selectedChat || isGenerating}
+          isGenerating={isGenerating}
+          onStop={stop}
         />
       </div>
     </div>

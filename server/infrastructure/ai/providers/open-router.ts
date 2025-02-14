@@ -26,6 +26,7 @@ const openrouter = createOpenRouter({
     'cf-aig-authorization': `Bearer ${process.env.CF_AIG_TOKEN}`,
   },
   extraBody: {
+    include_reasoning: true,
     provider: {
       ignore: [
         "Fireworks",

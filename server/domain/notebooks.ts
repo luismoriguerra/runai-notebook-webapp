@@ -15,6 +15,7 @@ export interface Notebook {
   url: string;
   created_at: string;
   updated_at: string;
+  instructions?: string;
 }
 
 export async function getNotebooks(userId: string): Promise<Notebook[]> {
@@ -36,12 +37,13 @@ export async function createNotebook(
   userId: string, 
   title: string, 
   description: string,
-  url: string
+  url: string,
+  instructions: string = ''
 ): Promise<Notebook> {
   const id = nanoid();
   await runQuery(
-    "INSERT INTO notebooks (id, user_id, title, description, url) VALUES (?, ?, ?, ?, ?)",
-    [id, userId, title, description, url]
+    "INSERT INTO notebooks (id, user_id, title, description, url, instructions) VALUES (?, ?, ?, ?, ?, ?)",
+    [id, userId, title, description, url, instructions]
   );
   const notebook = await getNotebook(id, userId);
   if (!notebook) throw new Error("Failed to create notebook");
@@ -51,14 +53,44 @@ export async function createNotebook(
 export async function updateNotebook(
   id: string, 
   userId: string, 
-  title: string, 
-  description: string,
-  url: string
+  title?: string, 
+  description?: string,
+  url?: string,
+  instructions?: string
 ): Promise<Notebook> {
-  await runQuery(
-    "UPDATE notebooks SET title = ?, description = ?, url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?",
-    [title, description, url, id, userId]
-  );
+  const updates: string[] = [];
+  const values: (string | undefined)[] = [];
+
+  if (title !== undefined) {
+    updates.push('title = ?');
+    values.push(title);
+  }
+  if (description !== undefined) {
+    updates.push('description = ?');
+    values.push(description);
+  }
+  if (url !== undefined) {
+    updates.push('url = ?');
+    values.push(url);
+  }
+  if (instructions !== undefined) {
+    updates.push('instructions = ?');
+    values.push(instructions);
+  }
+
+  // Always add updated_at
+  updates.push('updated_at = CURRENT_TIMESTAMP');
+
+  // Add WHERE clause parameters
+  values.push(id, userId);
+
+  if (updates.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  const query = `UPDATE notebooks SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
+  await runQuery(query, values);
+
   const notebook = await getNotebook(id, userId);
   if (!notebook) throw new Error("Failed to update notebook");
   return notebook;

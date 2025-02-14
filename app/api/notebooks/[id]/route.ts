@@ -36,17 +36,15 @@ export async function PUT(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { title, description, url } = await request.json();
-    if (!title || !description || !url) {
-      return new NextResponse('Missing required fields', { status: 400 });
-    }
+    const { title, description, url, instructions } = await request.json();
+   
 
     const existingNotebook = await getNotebook(params.id, session.user.sub);
     if (!existingNotebook) {
       return new NextResponse('Notebook not found', { status: 404 });
     }
 
-    const notebook = await updateNotebook(params.id, session.user.sub, title, description, url);
+    const notebook = await updateNotebook(params.id, session.user.sub, title, description, url, instructions);
     return NextResponse.json(notebook);
   } catch (error) {
     console.error('Error in PUT /api/notebooks/[id]:', error);

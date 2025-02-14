@@ -2,7 +2,7 @@
 
 import { Copy, Save } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { nanoid } from 'nanoid'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
@@ -23,6 +23,13 @@ interface ChatMessageProps {
 export function ChatMessage({ message, notebookId }: ChatMessageProps) {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
+  const reasoningRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (reasoningRef.current) {
+      reasoningRef.current.scrollTop = reasoningRef.current.scrollHeight
+    }
+  }, [message.reasoning])
 
   const handleSaveNote = async () => {
     if (!message.content) return
@@ -98,9 +105,21 @@ export function ChatMessage({ message, notebookId }: ChatMessageProps) {
             )}
           </div>
         )}
-        {message.reasoning && <pre>{message.reasoning}</pre>}
+        {message.reasoning && (
+          <div className="border-b border-border bg-zinc-950/10 dark:bg-zinc-50/5 px-4 py-3">
+            <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-2">
+              <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+              Reasoning
+            </div>
+            <div 
+              ref={reasoningRef}
+              className="text-sm whitespace-pre-wrap text-secondary-foreground h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-secondary scrollbar-track-transparent pr-2 rounded-md bg-background/80 p-3 shadow-sm"
+            >
+              {message.reasoning}
+            </div>
+          </div>
+        )}
         <div className="p-4">
-          {/* <p className="whitespace-pre-wrap">{message.content}</p> */}
           <MarkdownRenderer content={message.content} />
         </div>
         <div className="flex items-center gap-2 border-t border-border p-2">
