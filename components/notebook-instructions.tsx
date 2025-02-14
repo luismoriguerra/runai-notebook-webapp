@@ -38,6 +38,7 @@ export function NotebookInstructions({ notebookId, initialInstructions = '' }: N
         description: "Instructions updated successfully",
       });
     } catch (error) {
+      console.error('Error updating instructions:', error);
       toast({
         title: "Error",
         description: "Failed to update instructions",
