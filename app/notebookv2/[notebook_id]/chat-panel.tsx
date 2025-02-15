@@ -1,147 +1,19 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Send, Loader2 } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { ChatMessage } from "./chat-message"
+import { Loader2 } from 'lucide-react'
 import { useNotebookChat } from "@/app/providers/chat-provider"
 import { useParams } from "next/navigation"
 import { useChat } from 'ai/react'
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { modelCategories } from '@/server/infrastructure/ai/llm-providers'
-import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { encode } from "gpt-tokenizer"
-import { memo } from 'react'
-import { Message } from 'ai'
-
-interface AIProviderError {
-  finishReason?: string;
-  message?: string;
-  usage?: {
-    promptTokens: number | null;
-    completionTokens: number | null;
-  };
-}
-
-interface ChatMessageType {
-  id?: string
-  role: "user" | "assistant"
-  content: string
-  title?: string
-  sourceCount?: number
-}
+import { AIProviderError } from './components/types'
+import { ChatHeader } from './components/chat-header'
+import { MessagesList } from './components/messages-list'
+import { ChatInputForm } from './components/chat-input-form'
 
 const llmCategories = modelCategories.map((model) => ({ value: model, label: model }));
-
-// Memoized Header Component
-const ChatHeader = memo(({ totalTokens, selectedModel, onModelChange }: {
-  totalTokens: number;
-  selectedModel: string;
-  onModelChange: (value: string) => void;
-}) => (
-  <div className="flex items-center justify-between border-b border-border p-4">
-    <h2 className="text-lg font-medium">Chat</h2>
-    <div className="flex items-center gap-2">
-      <div className="text-sm text-muted-foreground mr-2">
-        Total Tokens: {totalTokens}
-      </div>
-      <Select value={selectedModel} onValueChange={onModelChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select a model" />
-        </SelectTrigger>
-        <SelectContent>
-          {llmCategories.map((model) => (
-            <SelectItem key={model.value} value={model.value}>
-              {model.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  </div>
-));
-ChatHeader.displayName = 'ChatHeader';
-
-// Memoized Messages List Component
-const MessagesList = memo(({ messages, isGenerating, messagesEndRef, notebookId }: {
-  messages: Message[];
-  isGenerating: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  notebookId: string;
-}) => (
-  <div className="space-y-4">
-    {messages.map((message) => (
-      <ChatMessage
-        key={message.id}
-        message={message as ChatMessageType}
-        notebookId={notebookId}
-      />
-    ))}
-    {isGenerating && (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>AI is thinking...</span>
-      </div>
-    )}
-    <div ref={messagesEndRef} />
-  </div>
-));
-MessagesList.displayName = 'MessagesList';
-
-// Memoized Input Form Component
-const ChatInputForm = memo(({ 
-  input, 
-  onInputChange, 
-  onKeyDown, 
-  onSubmit, 
-  isDisabled,
-  isGenerating,
-  onStop
-}: {
-  input: string;
-  onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onKeyDown: (e: React.KeyboardEvent) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  isDisabled: boolean;
-  isGenerating: boolean;
-  onStop: () => void;
-}) => (
-  <form onSubmit={onSubmit} className="border-t border-border p-4">
-    <div className="flex gap-2">
-      <div className="flex-1">
-        <EnhancedTextarea
-          placeholder="Type a message..."
-          value={input}
-          onChange={onInputChange}
-          onKeyDown={onKeyDown}
-          disabled={isDisabled}
-          className="min-h-[60px] max-h-[200px]"
-          rows={3}
-        />
-      </div>
-      {isGenerating ? (
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={onStop}
-          className="shrink-0"
-        >
-          Stop
-        </Button>
-      ) : (
-        <Button
-          type="submit"
-          disabled={!input.trim() || isDisabled}
-          className="shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  </form>
-));
-ChatInputForm.displayName = 'ChatInputForm';
 
 export function ChatPanel() {
   const [isLoading, setIsLoading] = useState(true)
@@ -156,7 +28,6 @@ export function ChatPanel() {
 
   const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading: isGenerating, stop } = useChat({
     api: selectedChat ? `/api/notebooks/${notebookId}/chats/${selectedChat.id}` : undefined,
-    maxSteps: 4,
     onError: useCallback((error: Error) => {
       console.error('Error sending message:', error);
 

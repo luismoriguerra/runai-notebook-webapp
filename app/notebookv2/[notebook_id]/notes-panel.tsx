@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Plus, MoreVertical } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { NoteCard } from "@/components/note-card"
 import { EditNote } from "@/components/edit-note"
+import { memo } from 'react'
 
 interface Note {
   id: string
@@ -28,6 +29,11 @@ interface Note {
   updated_at: string
 }
 
+// Memoized NoteCard component
+const MemoizedNoteCard = memo(NoteCard)
+// Memoized EditNote component
+const MemoizedEditNote = memo(EditNote)
+
 export function NotesPanel() {
   const { toast } = useToast()
   const params = useParams()
@@ -38,11 +44,7 @@ export function NotesPanel() {
   const [editingNote, setEditingNote] = useState<Note | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  useEffect(() => {
-    fetchNotes()
-  }, [notebookId])
-
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/notebooks/${notebookId}/notes`)
@@ -58,45 +60,50 @@ export function NotesPanel() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [notebookId, toast])
 
-  const handleAddNote = () => {
+  useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes])
+
+  const handleAddNote = useCallback(() => {
     setEditingNote(null)
     setEditorOpen(true)
-  }
+  }, [])
 
-  const handleEditNote = (note: Note) => {
+  const handleEditNote = useCallback((note: Note) => {
     setEditingNote(note)
     setEditorOpen(true)
-  }
+  }, [])
 
-  const handleCloseEditor = () => {
+  const handleCloseEditor = useCallback(() => {
     setEditorOpen(false)
     setEditingNote(null)
-  }
+  }, [])
 
-  const handleSaveNote = (savedNote: Note) => {
-    if (editingNote) {
-      setNotes(notes.map(note =>
-        note.id === editingNote.id ? savedNote : note
-      ))
-    } else {
-      setNotes([savedNote, ...notes])
-    }
-  }
+  const handleSaveNote = useCallback((savedNote: Note) => {
+    setNotes(prevNotes => {
+      if (editingNote) {
+        return prevNotes.map(note =>
+          note.id === editingNote.id ? savedNote : note
+        )
+      }
+      return [savedNote, ...prevNotes]
+    })
+  }, [editingNote])
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = useCallback(() => {
     setDeleteDialogOpen(true)
-  }
+  }, [])
 
-  const handleDeleteNote = async (note: Note) => {
+  const handleDeleteNote = useCallback(async (note: Note) => {
     try {
       const response = await fetch(`/api/notebooks/${notebookId}/notes/${note.id}`, {
         method: 'DELETE',
       })
       if (!response.ok) throw new Error('Failed to delete note')
 
-      setNotes(notes.filter(n => n.id !== note.id))
+      setNotes(prevNotes => prevNotes.filter(n => n.id !== note.id))
       toast({
         description: "Note deleted successfully",
       })
@@ -106,14 +113,32 @@ export function NotesPanel() {
         variant: "destructive",
       })
     }
-  }
+  }, [notebookId, toast])
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!editingNote) return
     await handleDeleteNote(editingNote)
     setEditorOpen(false)
     setDeleteDialogOpen(false)
-  }
+  }, [editingNote, handleDeleteNote])
+
+  // Memoize the notes list rendering
+  const notesList = useMemo(() => {
+    if (loading) {
+      return <div className="text-center py-4 text-sm text-gray-500">Loading notes...</div>
+    }
+    if (notes.length === 0) {
+      return <div className="text-center py-4 text-sm text-gray-500">No notes yet</div>
+    }
+    return notes.map((note) => (
+      <MemoizedNoteCard
+        key={note.id}
+        note={note}
+        onClick={handleEditNote}
+        onDelete={handleDeleteNote}
+      />
+    ))
+  }, [notes, loading, handleEditNote, handleDeleteNote])
 
   return (
     <>
@@ -122,7 +147,7 @@ export function NotesPanel() {
           <h2 className="text-lg font-medium">Studio</h2>
         </div>
         {editorOpen ? (
-          <EditNote
+          <MemoizedEditNote
             notebookId={notebookId}
             note={editingNote}
             onClose={handleCloseEditor}
@@ -172,20 +197,7 @@ export function NotesPanel() {
                 </Button>
               </div>
               <div className="mt-4 space-y-2">
-                {loading ? (
-                  <div className="text-center py-4 text-sm text-gray-500">Loading notes...</div>
-                ) : notes.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-gray-500">No notes yet</div>
-                ) : (
-                  notes.map((note) => (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      onClick={handleEditNote}
-                      onDelete={handleDeleteNote}
-                    />
-                  ))
-                )}
+                {notesList}
               </div>
             </div>
           </div>

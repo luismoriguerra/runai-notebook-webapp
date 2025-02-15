@@ -125,29 +125,17 @@ export async function POST(
       );
     }
 
-    console.log(JSON.stringify({
-      action: 'streamText',
-      messages,
-      llm_name,
-      provider
-    }, null, 2));
-
     const stream = await streamText({
       model: provider as LanguageModelV1,
       system: notebook.instructions,
       messages,
-      maxTokens: 8000,
-      maxSteps: 4,
+
       async onFinish({ text, finishReason, usage, response }) {
 
         console.log(JSON.stringify({
           action: 'onFinish',
           text, finishReason, usage, response
         }, null, 2));
-
-        if (!text) {
-          throw new Error('No text returned from the model');
-        }
 
         const updatedMessages = [...messages, {
           role: 'assistant',
@@ -165,6 +153,8 @@ export async function POST(
       sendUsage: true,
       sendReasoning: true,
     });
+
+
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
