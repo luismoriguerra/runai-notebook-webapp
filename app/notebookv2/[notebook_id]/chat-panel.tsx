@@ -16,12 +16,13 @@ import { ChatInputForm } from './components/chat-input-form'
 const llmCategories = modelCategories.map((model) => ({ value: model, label: model }));
 
 export function ChatPanel() {
+  const params = useParams();
+  const notebookId = params.notebook_id as string;
+  
   const [isLoading, setIsLoading] = useState(true)
   const [selectedModel, setSelectedModel] = useState(llmCategories[0].value)
   const [totalTokens, setTotalTokens] = useState(0)
   const { selectedChat } = useNotebookChat()
-  const params = useParams()
-  const notebookId = params.notebook_id as string
   const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -125,6 +126,34 @@ export function ChatPanel() {
     }
   }, [handleFormSubmit]);
 
+  const handleDeleteChat = useCallback(async () => {
+    if (!selectedChat) return;
+
+    try {
+      const response = await fetch(`/api/notebooks/${notebookId}/chats/${selectedChat.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete chat');
+      }
+
+      toast({
+        title: "Success",
+        description: "Chat deleted successfully",
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete chat. Please try again.",
+      });
+    }
+  }, [selectedChat, notebookId, toast]);
+
   return (
     <div className="border-l border-border flex-1">
       <div className="flex h-full flex-col">
@@ -132,6 +161,8 @@ export function ChatPanel() {
           totalTokens={totalTokens}
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
+          onDeleteChat={handleDeleteChat}
+          canDelete={!!selectedChat}
         />
 
         <div
